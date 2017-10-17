@@ -8,6 +8,9 @@
 if (!window.console) console = {log : function() {}};
 
 window.typejax = (function($){
+  function log() {
+    //console.log.apply(console, arguments);
+  }
 
   var typejax = {
     totaltext : "",
@@ -91,7 +94,7 @@ window.typejax = (function($){
         instext = localtext.substring(localhead, localsize - localtail);
         if (localsize != localtext.length) alert("text size is wrong!");
       }
-      //console.log("delstart:", delstart, "delend:", delend, "inssize:", instext.length, "newsize:", newsize);
+      //log("delstart:", delstart, "delend:", delend, "inssize:", instext.length, "newsize:", newsize);
       typejax.totaltext = localtext; typejax.totalsize = localsize;
       this.runTask(delstart, delend, instext.length);
     },
@@ -143,7 +146,7 @@ window.typejax = (function($){
 
       function compareDiv() {
         var modsize = newdiv[newdiv.length - 1].to - olddiv[olddiv.length - 1].to;
-        // console.log(olddiv.length, newdiv.length, modsize);
+        // log(olddiv.length, newdiv.length, modsize);
         var idx = start, exist, ndiv, odiv, nFrom, nTo, oFrom, oTo,
             min, max, i, k, a = 0, b = 0;
         for (i = 0; i < newdiv.length; i++) {
@@ -244,7 +247,7 @@ window.typejax = (function($){
           v.length = 3;
         });
         map = map.concat(mapx).sort(function(a,b){return a[0]-b[0];});
-        //console.log(map);
+        //log(map);
         return map;
       }
 
@@ -258,7 +261,7 @@ window.typejax = (function($){
         } else if (insEnd < start) {
           size2 += size;
         } else {
-          //console.log("shrink head or tail");
+          //log("shrink head or tail");
           head = Math.min(head, start);
           tail = Math.min(tail, raw.length - end);
         }
@@ -351,15 +354,15 @@ window.typejax = (function($){
         var i = 0, m, re, num;
         $.each(macros, function(name, m){
           re = getRegExp(name, m), num = m.num;
-          //console.log(re);
+          //log(re);
           doReplace(re, function(match){
-            //console.log(arguments);
+            //log(arguments);
             var start = arguments[arguments.length - 2], end = start + match.length,
                 args = [], result = m.def, k;
             for (k = 1; k <= num; k++) {
               args[k] = trimString(arguments[k]);
             }
-            //console.log(args);
+            //log(args);
             for (k = 1; k <= num; k++) {
               result = result.replace(new RegExp("#" + k, "g"), args[k]);
             }
@@ -373,7 +376,7 @@ window.typejax = (function($){
           modSize = insSize - (delEnd - delStart), oldSize = size - modSize,
           head = delStart, tail = oldSize - delEnd, insStart, insEnd, size1, size2,
           that = this, macros = {}, changed, map = [], mapx = [];
-      console.log("tex:", "delStart", delStart, "delEnd", delEnd, "+", insSize, "=", size);
+      log("tex:", "delStart", delStart, "delEnd", delEnd, "+", insSize, "=", size);
 
       checkMacros();
       extractMacros();
@@ -381,8 +384,8 @@ window.typejax = (function($){
       replaceMacros();
 
       delStart = head; delEnd = oldraw.length - tail; insSize = raw.length - head - tail;
-      console.log("raw:", "delStart", delStart, "delEnd", delEnd, "+", insSize, "=", raw.length);
-      //console.log(raw);
+      log("raw:", "delStart", delStart, "delEnd", delEnd, "+", insSize, "=", raw.length);
+      //log(raw);
       typejax.raw = raw; typejax.rawsize = raw.length;
       return {delStart: delStart, delEnd: delEnd, insSize: insSize};
     },
@@ -412,7 +415,7 @@ window.typejax = (function($){
         parseSome();
       }
       if (window.jaxedit) {
-        console.log("size: " + typejax.totalsize + "; change: " + delstart + " to " + delend);
+        log("size: " + typejax.totalsize + "; change: " + delstart + " to " + delend);
       }
     },
 
@@ -485,9 +488,9 @@ window.typejax = (function($){
       }
 
       var modsize = inssize - (delend - delstart);
-      console.log("div:",divstart,divend,"modify:",modstart,modend + modsize);
+      log("div:",divstart,divend,"modify:",modstart,modend + modsize);
       //var modtext = typejax.totaltext.substring(modstart,modend + modsize);
-      //console.log("modtext:", modtext);
+      //log("modtext:", modtext);
       return [modstart, modend, modsize, divstart, divend];
     },
 
@@ -504,7 +507,7 @@ window.typejax = (function($){
         data.splice(divstart + i, 0, out[i]);
       }
       divend += n;
-      //console.log("olddata:", olddata);
+      //log("olddata:", olddata);
       return {divend: divend, olddata: olddata};
     },
     
@@ -603,14 +606,14 @@ window.typejax = (function($){
         for (var i = 0; i < typejax.totaldata.length; i++) {
           if (typejax.totaldata[i][0] == this.modend) {
             this.modend = typejax.totaldata[i][1];
-            console.log("newEnding:",this.modend);
+            log("newEnding:",this.modend);
             break;
           }
         }
       },
 
       nextToken : function() { // find next token
-        //console.log(length,index);
+        //log(length,index);
         var type = "", value = "", place = this.index;
         if (this.atLast()) return { type: "", value: "", place: this.length};
         if (this.atEnding()) {
@@ -681,7 +684,7 @@ window.typejax = (function($){
         }
 
         this.index += 1;
-        //console.log(type, value);
+        //log(type, value);
         return {type: type, value: value, place: place};
       },
 
@@ -700,7 +703,7 @@ window.typejax = (function($){
       omitspace : false,
 
       analysis : function(input, modstart, modend) {
-        //console.log("initialize lexer");
+        //log("initialize lexer");
         lexer.initialize(input, modstart, modend);
 
         this.initTree();
@@ -1281,7 +1284,7 @@ window.typejax = (function($){
       },
 
       getVerbatim : function(envname) {
-        //console.log("verbatim");       
+        //log("verbatim");       
         var t1 = lexer.nextToken();
         if (t1.value == "\n" || t1.value == " ") {
           t1 = lexer.nextToken();        
@@ -1356,7 +1359,7 @@ window.typejax = (function($){
       },
       
       closeOldGroup : function(position) {
-        //console.log("close:", position);
+        //log("close:", position);
         var node = this.nodeplace, argtype = node.argtype;
         for (var j = node.argarray.length; j < argtype.length; j++) {  
           if (argtype[j] == "{}") {
@@ -1369,12 +1372,12 @@ window.typejax = (function($){
         }
         node.to = position;
         this.doThisGroup();
-        //console.log("close:", node.name, node.argtype);
-        //console.log("close:", this.nodearray);
+        //log("close:", node.name, node.argtype);
+        //log("close:", this.nodearray);
       },
       
       openNewGroup : function(type, name, position) {
-        //console.log("open: ", type, name, position);
+        //log("open: ", type, name, position);
         var args = this.getArgsType(type, name);
         if (type == "env") {
           if (args.length == 1) {
@@ -1385,8 +1388,8 @@ window.typejax = (function($){
         } else { // "cmd"
           this.openChild("cmd", name, position);
         }
-        //console.log("open: ", this.nodeplace.name, this.nodeplace.argtype);
-        //console.log("open: ", this.nodearray);
+        //log("open: ", this.nodeplace.name, this.nodeplace.argtype);
+        //log("open: ", this.nodearray);
       },
 
       closeOldMath : function(position) {
@@ -1436,7 +1439,7 @@ window.typejax = (function($){
       doThisGroup : function() {
         var node = this.nodeplace;
         this.closeChild(node.to);
-        //console.log("doThisGroup: ", node);
+        //log("doThisGroup: ", node);
         if (node.to > node.from) {
           if (node.type == "env") {
             this.doEnvironment(node);
@@ -1445,10 +1448,10 @@ window.typejax = (function($){
           }
         }
         if (this.nodelevel == 0) {
-          if (!node.to) console.log("doThisGroup: node.to is empty!");
+          if (!node.to) log("doThisGroup: node.to is empty!");
         }
-        //console.log("doThisGroup: ", node.name, node.argtype);
-        //console.log("doThisGroup: ", this.nodearray);
+        //log("doThisGroup: ", node.name, node.argtype);
+        //log("doThisGroup: ", this.nodearray);
       },
       
       initTree : function() {
@@ -1515,7 +1518,7 @@ window.typejax = (function($){
         }
         typejax.message.log("node", "CloseChild:", node.type, node.name, node.to);
         if (node.from >= node.to) {
-          //console.log("closeChild: empty group " + node.name);
+          //log("closeChild: empty group " + node.name);
           node.parent.childs.pop();
         }
         this.nodeplace = this.nodeplace.parent;
@@ -1583,10 +1586,10 @@ window.typejax = (function($){
       
       appendValue : function(node, value, position) {
         if (!node) {
-          console.log("appendValue: wrong node!");
+          log("appendValue: wrong node!");
           return;
         }
-        //console.log("appendValue:", node.name);
+        //log("appendValue:", node.name);
         if (node.childs.length == 0) {
           this.createTextNode(node);
         }
@@ -1599,7 +1602,7 @@ window.typejax = (function($){
       
       appendText : function(value, position) {
         var node = this.nodeplace;
-        //console.log("appendText:", node.mode, value);
+        //log("appendText:", node.mode, value);
         this.appendValue(node, value, position);
       },
       
@@ -1609,7 +1612,7 @@ window.typejax = (function($){
           case "{":
             if (this.nodelevel > 0) {
               parent = this.nodeplace;
-              //console.log("bracket:", node.name, node.argtype);
+              //log("bracket:", node.name, node.argtype);
               if (parent.argarray.length < parent.argtype.length) {
                 for (i = parent.argarray.length; i < parent.argtype.length; i++) {
                   if (parent.argtype[i] == "[]" || parent.argtype[i] == "<>") {
@@ -1619,14 +1622,14 @@ window.typejax = (function($){
                 i = parent.argarray.length;
                 if (parent.argtype[i] == "{}" || parent.argtype[i] == "{]") {
                   this.openChild("env", "{}", position, true);
-                  //console.log("bracket:", this.value, this.nodearray);
+                  //log("bracket:", this.value, this.nodearray);
                 } else { // "||" for environment content
                   if (parent.mode == "main") {
                     this.openNewGroup("env", "par", position);
                   }
                   this.openChild("cmd", "group", position);
                 }
-                //console.log("bracket:", this.value, this.nodearray);
+                //log("bracket:", this.value, this.nodearray);
                 break;
               }
             }
@@ -1644,10 +1647,10 @@ window.typejax = (function($){
                   } else {
                     this.createTextNode(parent);
                   }
-                  //console.log("bracket:", this.value, this.nodearray);
+                  //log("bracket:", this.value, this.nodearray);
                 } else {
                   node.to = position + 1;
-                  //console.log("bracket:", this.value, this.nodearray);
+                  //log("bracket:", this.value, this.nodearray);
                   if (parent.argarray.length == parent.argtype.length) {
                     parent.to = position + 1;
                     this.endGroup(parent.type, parent.name, parent.from, parent.to);
@@ -1674,17 +1677,17 @@ window.typejax = (function($){
                 i = parent.argarray.length;
                 if (parent.argtype[i] == "[]") {
                   this.openChild("env", "[]", position, true);
-                  //console.log(this.value, this.nodearray);
+                  //log(this.value, this.nodearray);
                 } else if (parent.argtype[i] == "||") {
                   if (parent.mode == "main") {
                     this.openNewGroup("env", "par", position);
                   }
-                  //console.log(this.value, this.nodearray);
+                  //log(this.value, this.nodearray);
                 } else if (parent.argtype[i] == "{}") {
                   this.openChild("env", "{}", position, true);
                   this.appendText("[", position);
                   node.from = position + 1;
-                  //console.log(this.value, this.nodearray);
+                  //log(this.value, this.nodearray);
                   if (parent.argarray.length == parent.argtype.length) {
                     this.endGroup(parent.type, parent.name, parent.from, parent.to);
                   }
@@ -1706,10 +1709,10 @@ window.typejax = (function($){
                   } else {
                     this.createTextNode(parent);
                   }
-                  //console.log(this.value, this.nodearray);
+                  //log(this.value, this.nodearray);
                 } else {
                   node.to = position + 1;
-                  //console.log(this.value, this.nodearray);
+                  //log(this.value, this.nodearray);
                   if (parent.argarray.length == parent.argtype.length) {
                     parent.to = position + 1;
                     this.endGroup(parent.type, parent.name, parent.from, parent.to);
@@ -1776,8 +1779,8 @@ window.typejax = (function($){
       },
       
       addText : function(value, position) {
-        //if (arguments.length == 1) console.log("no position for " + value);
-        //console.log("addtext: start for", this.nodeplace.name, this.nodeplace.argtype, value);
+        //if (arguments.length == 1) log("no position for " + value);
+        //log("addtext: start for", this.nodeplace.name, this.nodeplace.argtype, value);
         if (this.nodelevel > 0) {
           var n = value.length;
           var node = this.nodeplace;
@@ -1786,8 +1789,8 @@ window.typejax = (function($){
           } else {
             var i = node.argarray.length;
             while (i < node.argtype.length && value) {
-              //console.log("addtext:", node.name);
-              //console.log("addtext:", node.argtype[i]);
+              //log("addtext:", node.name);
+              //log("addtext:", node.argtype[i]);
               if (node.argtype[i] == "||") {
                 if (node.mode == "main") {
                   this.openNewGroup("env", "par", position + n - value.length);
@@ -1804,7 +1807,7 @@ window.typejax = (function($){
               }
               i++;
             }
-            //console.log("addtext:", node.name);
+            //log("addtext:", node.name);
             node.to = position + n - value.length;
             if (node.argarray.length == node.argtype.length) {
               this.endGroup(node.type, node.mode, node.from, node.to);
@@ -1812,12 +1815,12 @@ window.typejax = (function($){
                 this.addText(value, node.to);
               }
             } else if (value) {
-              console.log("addText: value is not empty!");
+              log("addText: value is not empty!");
               this.addText(value, position + n - value.length);
             }
           }
         } else {
-          console.log("addText: nodelevel is zero!");
+          log("addText: nodelevel is zero!");
           this.addText(value, position);
         }
       },
@@ -1833,7 +1836,7 @@ window.typejax = (function($){
         if (same1 == "item" && same2 == "item") return false;
         if (mode1 == "block" && same2 == "bmath") return true;
         if ((mode1 == "block" && mode2 != "inline") || (mode1 == "inline")) {
-          console.log("includeGroup:", name1, name2, false);
+          log("includeGroup:", name1, name2, false);
           return false;
         }
         var out = this.getGroupOuts(same2);
@@ -2359,7 +2362,7 @@ window.typejax = (function($){
               }
             }
             list.used = current;
-            console.log("usepackages", list.used);
+            log("usepackages", list.used);
             that.definitions.clear(); that.renderers.clear();
           }
         },
@@ -2473,7 +2476,7 @@ window.typejax = (function($){
     };
 
     function start() {
-      console.log("---------------- start parser ----------------");
+      log("---------------- start parser ----------------");
       syner.analysis(input, modstart, modend);
       syner.printTree(syner.innertree);
       var childs = syner.innertree.childs, out = [], child, i;
@@ -2487,12 +2490,12 @@ window.typejax = (function($){
           html:  that.builder(child, false),
           reset: that.builder.reset});
       }
-      console.log("output:", out);
+      log("output:", out);
       return out;
     }
 
     function stop() {
-      console.log("---------------- stop parser ----------------");
+      log("---------------- stop parser ----------------");
       lexer.ended = true;
       done = false;
     }
@@ -2590,7 +2593,7 @@ window.typejax = (function($){
       var msg = Array.prototype.slice.call(arguments, 1).join(" ");
       var sto = this.storage;
       sto[type] = sto[type] ? sto[type] + "\n" + msg : msg;
-      if (this.debug == "all" || this.debug.indexOf(type) > -1) console.log(msg);
+      if (this.debug == "all" || this.debug.indexOf(type) > -1) log(msg);
     },
 
     get: function(type) {
@@ -2598,7 +2601,7 @@ window.typejax = (function($){
     },
 
     print: function(type) {
-      console.log(this.storage[type] || "");
+      log(this.storage[type] || "");
     },
 
     clear: function(type) {
