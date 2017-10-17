@@ -1045,9 +1045,12 @@ window.typejax = (function($){
       },
 
       doSimple: function(name) {
-        var work = this["cmd" + name.charAt(0).toUpperCase() + name.slice(1)];
+        var same = name.charAt(0).toUpperCase() + name.slice(1),
+            work = this.renderers.find("cmd", same);
         if (work) {
           work.call(this);
+        } else if (this["cmd" + same]) {
+          this["cmd" + same].call(this);
         } else { //inside text or math
           this.addText("\\" + name, this.place - 1);
         }
@@ -2614,3 +2617,4 @@ window.typejax = (function($){
   return typejax;
 
 })(inliner);
+
