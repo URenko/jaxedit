@@ -693,6 +693,48 @@ window.typejax = (function($){
       }
     };
 
+    // Text mode accents : http://mirrors.ircam.fr/pub/CTAN/info/symbols/comprehensive/symbols-a4.pdf#section*.21
+    var accents = {
+      list: {
+        "'" : "acute",
+        "`" : "grave",
+        "^" : "circumflex",
+        "\"": "umlaut",
+        "." : "overdot",
+        "=" : "macron",
+        "b" : "underbar",
+        "c" : "cedilla",
+        "d" : "underdot",
+        "H" : "dbl_acute",
+        "r" : "overring",
+        "t" : "inv_breve",
+        "u" : "breve",
+        "v" : "caron",
+        "~" : "tilde"
+      },
+      find: function(char) {
+        if(!this.list[char]) {
+          return;
+        }
+        return this[this.list[char]];
+      },
+      acute: function(char) { return char + "&#769;"; },
+      grave: function(char) { return char + "&#768;"; },
+      circumflex: function(char) { return char + "&#770;"; },
+      umlaut: function(char) { return char + "&#776;"; },
+      overdot: function(char) { return char + "&#775;"; },
+      macron: function(char) { return char + "&#772;"; },
+      underbar: function(char) { return char + "&#817;"; },
+      cedilla: function(char) { return char + "&#807;"; },
+      underdot: function(char) { return char + "&#803;"; },
+      dbl_acute: function(char) { return char + "&#779;"; },
+      overring: function(char) { return char + "&#778;"; },
+      inv_breve: function(char) { return char + "&#785;"; },
+      breve: function(char) { return char + "&#774;"; },
+      caron: function(char) { return char + "&#780;"; },
+      tilde: function(char) { return char + "&#771;"; }
+    };
+
     var syner = {
       innertree : {},
       type : "",
@@ -770,6 +812,13 @@ window.typejax = (function($){
           this.addText("\\", this.place - 1);
           return;
         }
+
+        if(this.value.length == 1 && accents.list[this.value]) {
+          var node      = this.openChild("cmd", "_accent", this.place - 1);
+              node.func = accents.list[this.value];
+          return;
+        }
+
         switch (this.type) {
           case "escape":
             if (this.mathenv != "") {
@@ -785,6 +834,9 @@ window.typejax = (function($){
             break;
           case "space":
             this.addText(" ", this.place - 1);
+            break;
+          case "unicode":
+            this.addText(this.value, this.place - 1);
             break;
           case "special":
             switch (this.value) {
@@ -1480,12 +1532,12 @@ window.typejax = (function($){
         }
         typejax.message.log("node", "OpenChild: ", type, name, from);
         var node = {
-          type: type,
-          name: name,
-          mode: this.getGroupMode(name),
-          from: from,
+          type: type,                            // env, cmd
+          name: name,                            // par, math...
+          mode: this.getGroupMode(name),         // inline, block
+          from: from,                            // position
           value: "",
-          argtype: this.getArgsType(type, name),
+          argtype: this.getArgsType(type, name), // ["{}", "[]"]...
           argarray: [],
           parent: parent,
           childs: []
@@ -2065,6 +2117,7 @@ window.typejax = (function($){
     (function() {
       var definitions = {
         command: {
+          "_accent":                  {mode: "inline", args: ["{}"]},
           "author":                   {mode: "inline", args: ["[]", "{}"]},
           "chapter":                  "section",
           "chapter*":                 "section",
@@ -2108,6 +2161,18 @@ window.typejax = (function($){
       };
 
       var renderers = {
+        cmd_accent: function(node) {
+          var chr = " ", tail = "";
+
+          if(node.argarray[0].childs[0]) {
+            var text = node.argarray[0].childs[0].value;
+
+            chr  = text.substring(0,1);
+            tail = text.substring(1);
+          }
+          node.value  = accents[node.func](chr);
+          node.childs = [];
+        },
         cmdAuthor: function(node) {
           this.renderers.find("cmd", "title").call(this, node);
         },
@@ -2288,6 +2353,41 @@ window.typejax = (function($){
         cmdTextless: function() {
           this.addText("&lt;", this.place - 1);
         },
+
+        // Text mode commands : http://mirrors.ircam.fr/pub/CTAN/info/symbols/comprehensive/symbols-a4.pdf#section*.4
+        cmdTextasciicircum     : function() { this.addText("&Hat;", this.place - 1); },
+        cmdTextasciitilde      : function() { this.addText("&tilde;", this.place - 1); },
+        cmdTextasteriskcentered: function() { this.addText("&lowast;", this.place - 1); },
+        cmdTextbardbl          : function() { this.addText("&Vert;", this.place - 1); },
+        cmdTextbigcircle       : function() { this.addText("&#09675;", this.place - 1); },
+        cmdTextbraceleft       : function() { this.addText("&lbrace;", this.place - 1); },
+        cmdTextbraceright      : function() { this.addText("&rbrace;", this.place - 1); },
+        cmdTextbullet          : function() { this.addText("&bull;", this.place - 1); },
+        cmdTextcopyright       : function() { this.addText("&copy;", this.place - 1); },
+        cmdTextdagger          : function() { this.addText("&dagger;", this.place - 1); },
+        cmdTextdaggerdbl       : function() { this.addText("&Dagger;", this.place - 1); },
+        cmdTextdollar          : function() { this.addText("&dollar;", this.place - 1); },
+        cmdTextellipsis        : function() { this.addText("&period;&period;&period;", this.place - 1); },
+        cmdTextemdash          : function() { this.addText("&mdash;", this.place - 1); },
+        cmdTextendash          : function() { this.addText("&ndash;", this.place - 1); },
+        cmdTextexclamdown      : function() { this.addText("&iexcl;", this.place - 1); },
+        cmdTextordfeminine     : function() { this.addText("&ordf;", this.place - 1); },
+        cmdTextordmasculine    : function() { this.addText("&ordm;", this.place - 1); },
+        cmdTextparagraph       : function() { this.addText("&para;", this.place - 1); },
+        cmdTextperiodcentered  : function() { this.addText("&mdash;", this.place - 1); },
+        cmdTextpertenthousand  : function() { this.addText("&pertenk;", this.place - 1); },
+        cmdTextperthousand     : function() { this.addText("&permil;", this.place - 1); },
+        cmdTextquestiondown    : function() { this.addText("&iquest;", this.place - 1); },
+        cmdTextquotedblleft    : function() { this.addText("&#10077;", this.place - 1); },
+        cmdTextquotedblright   : function() { this.addText("&#10078;", this.place - 1); },
+        cmdTextquoteleft       : function() { this.addText("&#10075;", this.place - 1); },
+        cmdTextquoteright      : function() { this.addText("&#10076;", this.place - 1); },
+        cmdTextregistered      : function() { this.addText("&reg;", this.place - 1); },
+        cmdTextsection         : function() { this.addText("&sect;", this.place - 1); },
+        cmdTextsterling        : function() { this.addText("&pound;", this.place - 1); },
+        cmdTexttrademark       : function() { this.addText("&trade;", this.place - 1); },
+        cmdTextunderscore      : function() { this.addText("&lowbar;", this.place - 1); },
+        cmdTextvisiblespace    : function() { this.addText("&#x2423;", this.place - 1); },
 
         cmdTitle: function(node) {
           var csname = node.name, argarray = node.argarray;
