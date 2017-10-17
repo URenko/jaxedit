@@ -712,12 +712,6 @@ window.typejax = (function($){
         "v" : "caron",
         "~" : "tilde"
       },
-      find: function(char) {
-        if(!this.list[char]) {
-          return;
-        }
-        return this[this.list[char]];
-      },
       acute: function(char) { return char + "&#769;"; },
       grave: function(char) { return char + "&#768;"; },
       circumflex: function(char) { return char + "&#770;"; },
@@ -733,6 +727,44 @@ window.typejax = (function($){
       breve: function(char) { return char + "&#774;"; },
       caron: function(char) { return char + "&#780;"; },
       tilde: function(char) { return char + "&#771;"; }
+    };
+
+    var chars = {
+      list: {
+        "oe": "oelig",
+        "OE": "OELIG",
+        "ae": "aelig",
+        "AE": "AELIG",
+        "aa": "aring",
+        "AA": "ARING",
+        "o" : "oslash",
+        "O" : "OSLASH",
+        "l" : "lstrok",
+        "L" : "LSTROK",
+        "ss": "szlig",
+        "i" : "dotless_i",
+        "j" : "dotless_j",
+        "P" : "para",
+        "S" : "sect"
+      },
+      get: function(name) {
+        return this[this.list[name]]();
+      },
+      oelig: function() { return "&oelig;"; },
+      OELIG: function() { return "&OElig;"; },
+      aelig: function() { return "&aelig;"; },
+      AELIG: function() { return "&AElig;"; },
+      aring: function() { return "&aring;"; },
+      ARING: function() { return "&Aring;"; },
+      oslash: function() { return "&oslash;"; },
+      OSLASH: function() { return "&Oslash;"; },
+      lstrok: function() { return "&lstrok;"; },
+      LSTROK: function() { return "&Lstrok;"; },
+      szlig: function() { return "&szlig;"; },
+      dotless_i: function() { return "&imath;"; },
+      dotless_j: function() { return "&#567;"; },
+      para: function() { return "&para;"; },
+      sect: function() { return "&sect;"; }
     };
 
     var syner = {
@@ -813,10 +845,17 @@ window.typejax = (function($){
           return;
         }
 
-        if(this.value.length == 1 && accents.list[this.value]) {
-          var node      = this.openChild("cmd", "_accent", this.place - 1);
-              node.func = accents.list[this.value];
-          return;
+        // Accents \^{e} and chars \oe
+        if(this.value.length <= 2) {
+          if(accents.list[this.value]) {
+            var node      = this.openChild("cmd", "_accent", this.place - 1);
+                node.func = accents.list[this.value];
+            return;
+          }
+          if(chars.list[this.value]) {
+            this.addText(chars.get(this.value), this.place - 1);
+            return;
+          }
         }
 
         switch (this.type) {
