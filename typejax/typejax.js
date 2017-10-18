@@ -545,8 +545,10 @@ window.typejax = (function($){
         if (subcounters["-toc-" + sectname]) style = " style='counter-reset:" + subcounters["-toc-" + sectname] + ";'";
         tocstr += "<div class='toc-" + sectname + "'" + style + "><a href='#" + anchor + "'>" + numstr + sectdata[2] + "</a></div>";
       }
-      tocdiv = document.getElementById("tableofcontents");
-      if (tocdiv) tocdiv.innerHTML = tocstr;
+      tocdivs = showarea.getElementsByClassName("toc");
+      for(var i = 0; i < tocdivs.length; i++) {
+        tocdiv[i].innerHTML = tocstr;
+      }
     }
   };
 
@@ -2367,7 +2369,7 @@ window.typejax = (function($){
 
         cmdTableofcontents: function(node) {
           node.childs = [];
-          node.value = "<div id='tableofcontents'></div>";
+          node.value = "<div class='toc'></div>";
         },
 
         cmdTextbackslash: function() {
