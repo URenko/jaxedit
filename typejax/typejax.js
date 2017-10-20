@@ -1302,11 +1302,20 @@ window.typejax = (function($){
             if (csname == "begin") {
               this.beginGroup("env", envname, where, where + 8 + envname.length);
               this.getVerbatim(envname);
-              this.endGroup("env", envname, this.place - 5 - envname.length, this.place + 1);          
+              this.endGroup("env", envname, this.place - 5 - envname.length, this.place + 1);
             } else {
               this.addText("\\" + csname + "{" + envname + "}", where);
             }
             break;
+          case "abstract":
+            this.closeOldMath(where);
+              if (csname == "begin") {
+                this.beginGroup("env", envname, where, where + 8 + envname.length);
+                this.addLabel("Abstract");
+              } else {
+                this.endGroup("env", envname, where, where + 6 + envname.length);
+              }
+              break;
           default:
             if (this.definitions.find("environment", envname)) {
               this.closeOldMath(where);
@@ -1873,7 +1882,23 @@ window.typejax = (function($){
             break;
         }
       },
-      
+
+      addLabel: function(value) {
+        var node = this.nodeplace;
+        var textnode = {
+          type: "env",
+          name: "label",
+          mode: "inline",
+          from: node.from,
+          to: -1,
+          value: value,
+          parent: node,
+          childs: []
+        };
+        node.childs.push(textnode);
+        this.createTextNode(node);
+      },
+
       addText : function(value, position) {
         //if (arguments.length == 1) log("no position for " + value);
         //log("addtext: start for", this.nodeplace.name, this.nodeplace.argtype, value);
@@ -2188,6 +2213,7 @@ window.typejax = (function($){
           "usepackage":               {mode: "inline", args: ["[]", "{}"]}
         },
         environment: {
+          "abstract":                 {mode: "block", args: ["||"], outs: ["par"]},
           "bmath":                    {mode: "block"},
           "center":                   {mode: "main", args: ["||"], outs: ["par", "center"]},
           "enumerate":                {mode: "block", args: ["[]", "||"]},
