@@ -2297,7 +2297,10 @@ window.typejax = (function($){
           "tabular":                  {mode: "inline", args: ["{}", "||"]},
           "theorem":                  {mode: "main", args: ["[]", "||"], outs: ["par", "theorem"]},
           "verbatim":                 {mode: "block", args: ["||"], outs: ["par"]},
-          "Verbatim":                 {mode: "block", args: ["||"], outs: ["par"]}
+          "Verbatim":                 {mode: "block", args: ["||"], outs: ["par"]},
+          "quote":                    {mode: "main", args: ["||"], outs: ["par"]},
+          "quotation":                {mode: "main", args: ["||"], outs: ["par"]},
+          "verse":                    {mode: "main", args: ["||"], outs: ["par"]}
         }
       };
 
