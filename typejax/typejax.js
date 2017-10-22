@@ -2010,7 +2010,7 @@ window.typejax = (function($){
         same1 = this.getGroupSame(name1); same2 = this.getGroupSame(name2);
         mode1 = this.getGroupMode(same1); mode2 = this.getGroupMode(same2);
         if (same2 == "section") return false;
-        if ((same1 == "enumerate" || same1 == "itemize") && same2 == "item") return true;
+        if ((same1 == "enumerate" || same1 == "itemize" || same1 == "description") && same2 == "item") return true;
         if (same1 == "tabular" || mode2 == "inline") return true;
         if (same1 == "item" && same2 == "item") return false;
         if (mode1 == "block" && same2 == "bmath") return true;
@@ -2286,7 +2286,8 @@ window.typejax = (function($){
           "bmath":                    {mode: "block"},
           "center":                   {mode: "main", args: ["||"], outs: ["par", "center"]},
           "enumerate":                {mode: "block", args: ["[]", "||"]},
-          "item":                     {mode: "main", args: ["<>", "||"]},
+          "description":              {mode: "block", args: ["[]", "||"]},
+          "item":                     {mode: "main", args: ["[]", "<>", "||"]},
           "itemize":                  {mode: "block", args: ["[]", "||"]},
           "par":                      {mode: "block", args: ["||"], outs: ["par", "section"]},
           "preamble":                 {mode: "main", args: ["||"]},
@@ -2591,6 +2592,9 @@ window.typejax = (function($){
         envEnumerate: function(node) {
           this.renderers.find("env", "itemize").call(this, node);
         },
+        envDescription: function(node) {
+          this.renderers.find("env", "itemize").call(this, node);
+        },
 
         envItemize: function(node) {
           // itemize, enumerate
@@ -2812,13 +2816,16 @@ window.typejax = (function($){
             open += "<script type='math/tex; mode=display'>", close = "</script>" + close;
             break;
           case "enumerate":
-            open += "<ol>", close = "</ol>" + close;
+            open += "<ol class='enumerate'>", close = "</ol>" + close;
+            break;
+          case "description":
+            open += "<ul class='description'>", close = "</ul>" + close;
             break;
           case "itemize":
-            open += "<ul>", close = "</ul>" + close;
+            open += "<ul class='itemize'>", close = "</ul>" + close;
             break;
           case "item":
-            open = "<li>", close = "</li>";
+            open = "<li" + (tree.argarray[0] ? ' class="hasLabel"' : '') + ">", close = "</li>";
             break;
         }
       }
@@ -2829,13 +2836,16 @@ window.typejax = (function($){
           open += "<script type='math/tex; mode=display'>", close = "</script>";
           break;
         case "enumerate":
-          open = "<div><ol>", close = "</ol></div>";
+          open = "<div><ol class='enumerate'>", close = "</ol></div>";
+          break;
+        case "description":
+          open = "<div><ul class='description'>", close = "</ul></div>";
           break;
         case "itemize":
-          open = "<div><ul>", close = "</ul></div>";
+          open = "<div><ul class='itemize'>", close = "</ul></div>";
           break;
         case "item":
-          open = "<li>", close = "</li>";
+          open = "<li" + (tree.argarray[0] ? ' class="hasLabel"' : '') + ">", close = "</li>";
           break;
         default:
           open = "", close = "";
