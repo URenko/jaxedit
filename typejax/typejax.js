@@ -769,6 +769,19 @@ window.typejax = (function($){
       sect: function() { return "&sect;"; }
     };
 
+    var sizes = {
+      "tiny": "tiny",
+      "scriptsize": "scriptsize",
+      "footnotesize": "footnotesize",
+      "small": "small",
+      "normalsize": "normalsize",
+      "large": "large",
+      "Large": "Large",
+      "LARGE": "LARGE",
+      "huge": "huge",
+      "Huge": "Huge",
+    };
+
     var syner = {
       innertree : {},
       type : "",
@@ -842,6 +855,7 @@ window.typejax = (function($){
         this.type = token.type;
         this.value = token.value;
         this.place = token.place;
+
         if (this.type == "") {
           this.addText("\\", this.place - 1);
           return;
@@ -1138,15 +1152,30 @@ window.typejax = (function($){
       },
 
       doSimple: function(name) {
+
+        // {\huge Lorem ipsum}
+        if(sizes[name]) {
+          this.doSize(name);
+          return;
+        }
+
         var same = name.charAt(0).toUpperCase() + name.slice(1),
             work = this.renderers.find("cmd", same);
+
+        // \textbf{Lorem ipsum}
         if (work) {
           work.call(this);
-        } else if (this["cmd" + same]) {
-          this["cmd" + same].call(this);
-        } else { //inside text or math
-          this.addText("\\" + name, this.place - 1);
+          return;
         }
+
+        // ??
+        if (this["cmd" + same]) {
+          this["cmd" + same].call(this);
+          return;
+        }
+
+        //inside text or math
+        this.addText("\\" + name, this.place - 1);
       },
 
       doCommand : function(node) {
@@ -1155,6 +1184,15 @@ window.typejax = (function($){
         if (work) {
           work.call(this, node);
         }
+      },
+
+      doSize: function(size) {
+        var parent = this.nodeplace;
+
+        if(parent.name != "group" || parent.mode != "inline" || parent.childs.length > 0) {
+          this.openChild("cmd", "group", this.place - 1);
+        }
+        this.setClassname(size);
       },
 
       cmdsSimple : function(csname, where) { // with single parameter
@@ -1573,7 +1611,11 @@ window.typejax = (function($){
         this.nodelevel = 0;
         this.nodearray = [];
       },
-      
+
+      setClassname: function(classname) {
+        this.nodeplace.classname = classname;
+      },
+
       openChild : function(type, name, from, mark) {
         var parent = this.nodeplace;
         if (!parent) {
@@ -2699,13 +2741,15 @@ window.typejax = (function($){
     if (tree.reset) this.builder.reset += tree.reset;
     if (flag) {
       if (tree.mode == "inline") {
-        open = "<span class='" + tree.name + "'>", close = "</span>";
+        open = "<span class='" + tree.name + (tree.classname ? " " + tree.classname : "") + "'>",
+        close = "</span>";
+
         if (tree.name == "imath") {
           open += "<span class='MathJax_Preview'>" + $.escapeText(tree.value) + "</span>";
           open += "<script type='math/tex'>", close = "</script>" + close; 
         }
       } else {
-        open = "<div class='envblock " + tree.name + "'>", close = "</div>";
+        open = "<div class='envblock " + tree.name + (tree.classname ? " " + tree.classname : "") + "'>", close = "</div>";
         switch (tree.name) {
           case "bmath":
             open += "<div class='MathJax_Preview'>" + $.escapeText(tree.value) + "</div>";
