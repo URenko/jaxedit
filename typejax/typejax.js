@@ -1344,6 +1344,7 @@ window.typejax = (function($){
               this.endGroup("env", envname, where, where + 6 + envname.length);
             }
             break;
+          case "Verbatim":
           case "verbatim":
             this.closeOldMath(where);
             if (csname == "begin") {
@@ -2293,7 +2294,8 @@ window.typejax = (function($){
           "preamble":                 {mode: "main", args: ["||"]},
           "tabular":                  {mode: "inline", args: ["{}", "||"]},
           "theorem":                  {mode: "main", args: ["[]", "||"], outs: ["par", "theorem"]},
-          "verbatim":                 {mode: "block", args: ["||"], outs: ["par"]}
+          "verbatim":                 {mode: "block", args: ["||"], outs: ["par"]},
+          "Verbatim":                 {mode: "block", args: ["||"], outs: ["par"]}
         }
       };
 
