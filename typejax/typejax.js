@@ -2286,6 +2286,8 @@ window.typejax = (function($){
           "abstract":                 {mode: "block", args: ["||"], outs: ["par"]},
           "bmath":                    {mode: "block"},
           "center":                   {mode: "main", args: ["||"], outs: ["par", "center"]},
+          "flushleft":                {mode: "main", args: ["||"], outs: ["par", "flushleft"]},
+          "flushright":               {mode: "main", args: ["||"], outs: ["par", "flushright"]},
           "enumerate":                {mode: "block", args: ["[]", "||"]},
           "description":              {mode: "block", args: ["[]", "||"]},
           "item":                     {mode: "main", args: ["[]", "<>", "||"]},
