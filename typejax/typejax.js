@@ -2267,6 +2267,16 @@ window.typejax = (function($){
           "subsubsection*":           "section",
           "tableofcontents":          {mode: "block", args: ["[]"], outs: ["par"]},
           "textbf":                   {mode: "inline", args: ["{}"]},
+          "textit":                   {mode: "inline", args: ["{}"]},
+          "textsl":                   {mode: "inline", args: ["{}"]},
+          "textup":                   {mode: "inline", args: ["{}"]},
+          "textmd":                   {mode: "inline", args: ["{}"]},
+          "textsc":                   {mode: "inline", args: ["{}"]},
+          "textrm":                   {mode: "inline", args: ["{}"]},
+          "textsf":                   {mode: "inline", args: ["{}"]},
+          "texttt":                   {mode: "inline", args: ["{}"]},
+          "underline":                {mode: "inline", args: ["{}"]},
+          "emph":                     {mode: "inline", args: ["{}"]},
           "thanks":                   {mode: "inline", args: ["{}"]},
           "title":                    {mode: "inline", args: ["[]", "{}"]},
           "usepackage":               {mode: "inline", args: ["[]", "{}"]}
@@ -2474,9 +2484,27 @@ window.typejax = (function($){
           this.addText("|", this.place - 1);
         },
 
-        cmdTextbf: function(node) {
-          if (node.argarray[0].childs[0]) {
-            node.value = "<b>" + node.argarray[0].childs[0].value + "</b>";
+        cmdTextit: function(node) { renderers._cmdText(node, "<em>${value}</em>"); },
+        cmdTextsl: function(node) { renderers._cmdText(node, "<span style='font-style: oblique'>${value}</span>"); },
+        cmdTextup: function(node) { renderers._cmdText(node, "<span style='font-style: normal'>${value}</span>"); },
+        cmdTextmd: function(node) { renderers._cmdText(node, "<span style='font-weight: normal'>${value}</span>"); },
+        cmdTextsc: function(node) { renderers._cmdText(node, "<span style='font-variant: small-caps'>${value}</span>"); },
+        cmdTextrm: function(node) { renderers._cmdText(node, "<span style='font-family: MathJax_Main'>${value}</span>"); },
+        cmdTextsf: function(node) { renderers._cmdText(node, "<span style='font-family: MathJax_SansSerif'>${value}</span>"); },
+        cmdTexttt: function(node) { renderers._cmdText(node, "<span style='font-family: MathJax_Typewriter'>${value}</span>"); },
+        cmdTextbf: function(node) { renderers._cmdText(node, "<b>${value}</b>"); },
+        cmdUnderline: function(node) { renderers._cmdText(node, "<u>${value}</u>"); },
+        cmdEmph: function(node) { renderers._cmdText(node, "<em>${value}</em>"); },
+
+        _cmdText: function(node, tpl) {
+          var children = node.argarray[0].childs;
+
+          if (children.length) {
+            var value = "";
+            for(var i = 0; i < children.length; i++) {
+              value += children[i].value;
+            }
+            node.value = tpl.replace('${value}', value);
             node.childs = [];
           }
         },
