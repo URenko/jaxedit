@@ -1024,6 +1024,15 @@ window.typejax = (function($){
                 this.beginGroup("env", "par", this.place - 1, this.place -1);
                 this.beginGroup("cmd", csname, this.place - 1, this.place + csname.length);
                 break;
+              case "color":
+                this.closeOldMath(this.place - 1);
+
+                var node = this.nodeplace;
+                if(node.name != "group" || node.mode != "inline" || node.childs.length > 0) {
+                  this.openChild("cmd", "group", this.place - 1);
+                }
+                this.beginGroup("cmd", csname, this.place - 1, this.place + csname.length);
+                break;
               default:
                 var argtype = this.getArgsType("cmd", csname);
                 if (argtype.length > 0) {
@@ -1614,6 +1623,13 @@ window.typejax = (function($){
 
       setClassname: function(classname) {
         this.nodeplace.classname = classname;
+      },
+
+      addStyle: function(property, value) {
+        if(!this.nodeplace.addStyle) {
+          this.nodeplace.addStyle = [];
+        }
+        this.nodeplace.addStyle.push(property + ':' + value);
       },
 
       openChild : function(type, name, from, mark) {
@@ -2229,6 +2245,7 @@ window.typejax = (function($){
           "author":                   {mode: "inline", args: ["[]", "{}"]},
           "chapter":                  "section",
           "chapter*":                 "section",
+          "color":                    {mode: "inline", args: ["{}"]},
           "date":                     {mode: "inline", args: ["{}"]},
           "documentclass":            {mode: "inline", args: ["[]", "{}"]},
           "group":                    {mode: "inline", args: ["{}"]},
@@ -2284,6 +2301,15 @@ window.typejax = (function($){
         },
         cmdAuthor: function(node) {
           this.renderers.find("cmd", "title").call(this, node);
+        },
+
+        cmdColor: function(node) {
+          if(node.argarray[0].childs[0]) {
+            if(!node.parent.style) {
+              node.parent.style = [];
+            }
+            node.parent.style.push('color: ' + node.argarray[0].childs[0].value);
+          }
         },
 
         cmdDate: function(node) {
@@ -2741,7 +2767,9 @@ window.typejax = (function($){
     if (tree.reset) this.builder.reset += tree.reset;
     if (flag) {
       if (tree.mode == "inline") {
-        open = "<span class='" + tree.name + (tree.classname ? " " + tree.classname : "") + "'>",
+        open = "<span class='" + tree.name + (tree.classname ? " " + tree.classname : "") + "'" +
+                  (tree.style ? "style='" + tree.style.join(";") + "'" : "") +
+                ">",
         close = "</span>";
 
         if (tree.name == "imath") {
