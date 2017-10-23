@@ -2230,6 +2230,8 @@ window.typejax = (function($){
       }
     };
 
+    var footnotes = [];
+
     /* group.mode
      * main group could include main and block groups
      * block group cuuld include inline groups and bmath elements
@@ -2249,6 +2251,7 @@ window.typejax = (function($){
           "color":                    {mode: "inline", args: ["{}"]},
           "date":                     {mode: "inline", args: ["{}"]},
           "documentclass":            {mode: "inline", args: ["[]", "{}"]},
+          "footnote":                 {mode: "inline", args: ["{}"]},
           "group":                    {mode: "inline", args: ["{}"]},
           "maketitle":                {mode: "block", args: []},
           "newcounter":               {mode: "inline", args: ["{}", "[]"]},
@@ -2327,6 +2330,20 @@ window.typejax = (function($){
               node.parent.style = [];
             }
             node.parent.style.push('color: ' + node.argarray[0].childs[0].value);
+          }
+        },
+
+        cmdFootnote: function(node) {
+          if(node.argarray[0].childs[0]) {
+            var k    = footnotes.length + 1,
+                html = '<div class="footnote-desc">'
+                        + '<span class="footnote">' + k + '</span>'
+                        + that.builder(node.argarray[0].childs[0], true)
+                     + '</div>';
+
+            footnotes.push([].concat(html));
+            node.childs = [];
+            node.value = k;
           }
         },
 
@@ -2756,7 +2773,9 @@ window.typejax = (function($){
       log("---------------- start parser ----------------");
       syner.analysis(input, modstart, modend);
       syner.printTree(syner.innertree);
-      var childs = syner.innertree.childs, out = [], child, i;
+      var childs = syner.innertree.childs,
+          out = [],
+          child, i;
       for (i = 0; i < childs.length; i++) {
         child = childs[i];
         that.builder.reset = "";
@@ -2766,6 +2785,13 @@ window.typejax = (function($){
           name:  child.name,
           html:  that.builder(child, false),
           reset: that.builder.reset});
+      }
+      if(footnotes) {
+        out.push({
+          name: 'footnotes',
+          html: footnotes.join("\n")
+        });
+        footnotes = [];
       }
       log("output:", out);
       return out;
