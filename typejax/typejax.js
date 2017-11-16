@@ -1644,13 +1644,6 @@ window.typejax = (function($){
         this.nodeplace.classname = classname;
       },
 
-      addStyle: function(property, value) {
-        if(!this.nodeplace.addStyle) {
-          this.nodeplace.addStyle = [];
-        }
-        this.nodeplace.addStyle.push(property + ':' + value);
-      },
-
       openChild : function(type, name, from, mark) {
         var parent = this.nodeplace;
         if (!parent) {
@@ -2284,6 +2277,7 @@ window.typejax = (function($){
           "part*":                    "section",
           "raisebox":                 {mode: "inline", args:["{}", "{}"]},
           "rowcolor":                 {mode: "inline", args:["{}"]},
+          "rule":                     {mode: "inline", args: ["{}"]},
           "section":                  {mode: "block", args: ["[]", "{}"]},
           "section*":                 "section",
           "subparagraph":             "paragraph",
@@ -2544,6 +2538,18 @@ window.typejax = (function($){
             return;
           }
           this.addText("<span style='position: relative; top:-" + pos + "'>" + text + "</span>");
+        },
+
+        cmdRule: function(node) {
+          if(node.argarray[0].childs[0]) {
+            if(!node.style) {
+              node.style = [];
+            }
+            var width = node.argarray[0].childs[0].value;
+            if(width != '\\textwidth') {
+              node.style.push('width:' + width);
+            }
+          }
         },
 
         cmdSection: function(node) {
