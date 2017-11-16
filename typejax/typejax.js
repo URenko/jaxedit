@@ -1289,6 +1289,7 @@ window.typejax = (function($){
                 this.closeOldGroup(where);
               }
               this.beginGroup("env", mathmode, where, where + 8 + envname.length);
+              this.setClassname(envname);
               if (mathdelim) {
                 this.addText("\\begin{" + envname + "}", where + 8 + envname.length);
               }
@@ -1409,6 +1410,8 @@ window.typejax = (function($){
       },
 
       getMathDollar : function(position) {
+
+        // Closing last mathenv
         if (this.mathenv == "$") {
           this.closeOldGroup(position + 1);
           this.mathenv = "";
@@ -1429,10 +1432,14 @@ window.typejax = (function($){
           return;
         }
         if (this.mathenv) return; // different math type
+
+        // Opening new mathenv
         this.closeEmptyArg(position);
         var token = lexer.nextToken();
         this.value = token.value;
-        if (this.value == "$") { // display math
+
+        // display math
+        if (this.value == "$") {
           this.openNewGroup("env", "bmath", position);
           token = lexer.nextToken();
           this.type = token.type;
@@ -1440,7 +1447,9 @@ window.typejax = (function($){
           this.place = token.place;
           this.mathenv = "$$";
           lexer.goBack(this.value.length);
-        } else { // inline math
+
+        // inline math
+        } else {
           this.openNewGroup("env", "imath", position);
           this.mathenv = "$";
           this.addText(this.value, position + 1);
@@ -1484,7 +1493,7 @@ window.typejax = (function($){
           t4 = t5;
           t5 = lexer.nextToken();
           this.place = t5.place;
-          if ( t5.value == "") break;        
+          if ( t5.value == "") break;
         }  
       },
 
@@ -3002,7 +3011,7 @@ window.typejax = (function($){
           reset: that.builder.reset
         });
       }
-      if(footnotes) {
+      if(footnotes.length > 0) {
         out.push({
           name: 'footnotes',
           html: footnotes.join("\n")
