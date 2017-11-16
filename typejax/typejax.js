@@ -788,8 +788,14 @@ window.typejax = (function($){
       value : "",
       place : -1,
       mathenv : "",
-      intabular : false,
       omitspace : false,
+      intabular : false,
+      tdnum: 0,
+      trnum: 0,
+      hlines: {},
+      clines: {},
+      rowcolor: {},
+      cellcolor: {}, // fin vars intabular
 
       analysis : function(input, modstart, modend) {
         //log("initialize lexer");
@@ -879,6 +885,8 @@ window.typejax = (function($){
             if (this.mathenv != "") {
                 this.addText("\\\\", this.place - 1);
             } else if (this.intabular) {
+              this.trnum++;
+              this.tdnum = 0;
               this.addText("</td></tr><tr><td>", this.place - 1);
             } else {
               this.addText("<br>", this.place - 1);
@@ -1109,6 +1117,7 @@ window.typejax = (function($){
             if (this.mathenv != "") {
               this.addText(this.value, this.place);
             } else if (this.intabular) {
+              this.tdnum++;
               this.addText("</td><td>", this.place);
             } else {
               this.addText(this.value, this.place);
@@ -1158,6 +1167,13 @@ window.typejax = (function($){
       tokenUnicode : function() {
         this.omitspace = false;
         this.addText(this.value, this.place);
+      },
+
+      cmdHline: function() {
+        if(!this.intabular) {
+          return;
+        }
+        this.hlines[this.trnum] = (this.hlines[this.trnum] ? this.hlines[this.trnum] + 1 : 1);
       },
 
       doSimple: function(name) {
@@ -1340,6 +1356,8 @@ window.typejax = (function($){
             if (csname == "begin") {
               this.beginGroup("env", envname, where, where + 8 + envname.length);
               this.intabular = true;
+              this.trnum = 0;
+              this.tdnum = 0;
             } else {
               this.endGroup("env", envname, where, where + 6 + envname.length);
             }
@@ -2246,14 +2264,17 @@ window.typejax = (function($){
         command: {
           "_accent":                  {mode: "inline", args: ["{}"]},
           "author":                   {mode: "inline", args: ["[]", "{}"]},
+          "cellcolor":                {mode: "inline", args:["{}"]},
           "chapter":                  "section",
           "chapter*":                 "section",
+          "cline":                    {mode: "inline", args: ["{}"]},
           "color":                    {mode: "inline", args: ["{}"]},
           "date":                     {mode: "inline", args: ["{}"]},
           "documentclass":            {mode: "inline", args: ["[]", "{}"]},
           "footnote":                 {mode: "inline", args: ["{}"]},
           "group":                    {mode: "inline", args: ["{}"]},
           "maketitle":                {mode: "block", args: []},
+          "multicolumn":              {mode: "inline", args: ["{}", "{}", "{}"]},
           "newcounter":               {mode: "inline", args: ["{}", "[]"]},
           "newtheorem":               {mode: "inline", args: ["{}", "[]", "{}", "[]"]},
           "newtheorem*":              {mode: "inline", args: ["{}", "{}"]},
@@ -2261,6 +2282,8 @@ window.typejax = (function($){
           "paragraph*":               "paragraph",
           "part":                     "section",
           "part*":                    "section",
+          "raisebox":                 {mode: "inline", args:["{}", "{}"]},
+          "rowcolor":                 {mode: "inline", args:["{}"]},
           "section":                  {mode: "block", args: ["[]", "{}"]},
           "section*":                 "section",
           "subparagraph":             "paragraph",
@@ -2324,6 +2347,34 @@ window.typejax = (function($){
           this.renderers.find("cmd", "title").call(this, node);
         },
 
+        cmdRowcolor: function(node) {
+          if(!this.intabular || !node.childs[0].childs.length) {
+            return;
+          }
+          this.rowcolor[this.trnum] = node.childs[0].childs[0].value;
+        },
+
+        cmdCellcolor: function(node) {
+          if(!this.intabular || !node.childs[0].childs.length) {
+            return;
+          }
+          if(!this.cellcolor[this.trnum]) {
+            this.cellcolor[this.trnum] = {};
+          }
+          this.cellcolor[this.trnum][this.tdnum] = node.childs[0].childs[0].value;
+        },
+
+        cmdCline: function(node) {
+          if(!this.intabular || !node.childs[0].childs.length) {
+            return;
+          }
+          var val = node.childs[0].childs[0].value.split("-");
+          if(val.length != 2) {
+            return;
+          }
+          this.clines[this.trnum] = val;
+        },
+
         cmdColor: function(node) {
           if(node.argarray[0].childs[0]) {
             if(!node.parent.style) {
@@ -2370,8 +2421,16 @@ window.typejax = (function($){
           }
         },
 
-        cmdHline: function() {
-          return;
+        // \multicolumn{2}{|l|}{text}
+        cmdMulticolumn: function(node) {
+          var colspan = node.childs[0].childs[0].value,
+              rules   = node.childs[1].childs[0].value,
+              text    = node.childs[2].childs[0].value;
+
+          if(isNaN(parseInt(colspan))) {
+            colspan = 1;
+          }
+          this.addText("<td colspan='" + colspan + "' rules='" + rules + "'>" + text, this.place -1);
         },
 
         cmdMaketitle: function(node) {
@@ -2476,6 +2535,15 @@ window.typejax = (function($){
           } else {
             this.addText("<span class='quad'></span>", this.place -1);
           }
+        },
+
+        cmdRaisebox: function(node) {
+          var pos  = node.childs[0].childs.length ? node.childs[0].childs[0].value : "",
+              text = node.childs[1].childs.length ? node.childs[1].childs[0].value : "";
+          if(!text || isNaN(parseFloat(pos))) {
+            return;
+          }
+          this.addText("<span style='position: relative; top:-" + pos + "'>" + text + "</span>");
         },
 
         cmdSection: function(node) {
@@ -2662,11 +2730,122 @@ window.typejax = (function($){
         },
 
         envTabular: function(node) {
+          var hlines    = this.hlines,
+              clines    = this.clines,
+              cellcolor = this.cellcolor,
+              rowcolor  = this.rowcolor;
+
+          /**
+           * Get alignement and border instructions
+           * @param string specs - |c|
+           * @return array       - [border-left: 1px solid black, text-align: center, border-right: 1px solid black]
+           */
+          function getCSSRules(specs) {
+
+            // Convert rules to CSS
+            var rules  = [], border = 0;
+            for(var j = 0; j < specs.length; j++) {
+              var val = specs[j];
+
+              if(val == "|") {
+                border++;
+                continue;
+              }
+              switch(val) {
+                case "l": rules.push({"text-align":"left"}); break;
+                case "c": rules.push({"text-align":"center"}); break;
+                case "r": rules.push({"text-align":"right"}); break;
+                case "p": rules.push({"text-align":"justify"}); break;
+              }
+              if(border) {
+                rules[rules.length-1]["border-left"] = border + 'px solid black';
+              }
+              border = 0;
+            }
+            if(border && rules) {
+              rules[rules.length-1]["border-right"] = border + 'px solid black';
+            }
+            return rules;
+          }
+
+          /*
+           * Update node's value to add CSS to tds (given tabular specs like |c|)
+           * @param Object node
+           */
+          function updateCSSRules(node) {
+
+            // Get given specs
+            var specs = "";
+            for(i = 0; i < node.argarray[0].childs.length; i++) {
+              var child  = node.argarray[0].childs[i];
+
+              if(child.name == "itext") {
+                specs += child.value;
+              }
+            }
+            var rules = getCSSRules(specs);
+
+            // Get list of tr & td
+            var td = 0,
+                tr = 0;
+            node.value = node.value.replace(/<tr>|<td> <td colspan='(\d+)' rules='([^']+)'>|<td>/g, function(match, colspan, specs){
+
+              // Count TR
+              if(match == "<tr>") {
+                td = 0;
+                tr++;
+                return '<tr data-row="' + tr + '">';
+              }
+              td++;
+
+              // TD : add CSS
+              var _rules = (specs ? getCSSRules(specs)[0] : rules[td-1]), // \multicolumn defines its own style
+                  style  = "";
+
+              // Alignment + vertical border
+              for(var k in _rules) {
+                style += k + ":" + _rules[k] + "; ";
+              }
+
+              // Horizontal border
+              if(hlines[tr-1]) {
+                if(hlines[tr-1] > 1) {
+                  style += "border-top: 3px double black; ";
+                } else {
+                  style += "border-top: 1px solid black; ";
+                }
+              } else if(clines[tr-1] && td >= clines[tr-1][0] && td <= clines[tr-1][1]) {
+                style += "border-top: 1px solid black; ";
+              }
+
+              // Background color
+              if(cellcolor[tr-1] && cellcolor[tr-1][td-1]) {
+                style += "background-color: " + cellcolor[tr-1][td-1] + "; ";
+              } else if(rowcolor[tr-1]) {
+                style += "background-color: " + rowcolor[tr-1] + "; ";
+              }
+
+              return '<td ' + (colspan && colspan > 1 ? 'colspan="' + colspan + '"' : '') + 'style="' + style + '">';
+            });
+
+            if(hlines[tr]) {
+              node.value = node.value.replace(
+                new RegExp('<tr data-row="' + tr + '"(?: style="([^"]+)")?>'),
+                function(match, style) {
+                  if(!style) {
+                    style = "";
+                  }
+                  return '<tr data-row="' + tr + '" style="' + style + 'border-bottom:1px solid black;">';
+                }
+              );
+            }
+          }
+
           var o = "", i, child;
           node.childs.shift();
           for (i = 0; i < node.childs.length; i++) {
             child = node.childs[i];
-            if (child.name == "imath") {
+            if (child.name == "imath" || child.name == "group") {
               o += typejax.builder(child, true);
             } else {
               o += child.value;
@@ -2677,12 +2856,18 @@ window.typejax = (function($){
             o = o.substring(0, o.length-1);
           }
           if (o.substring(o.length-8, o.length) == "<tr><td>") {
-            o = "<table border='1'><tbody><tr><td>" + o.substring(0, o.length-8) + "</tbody></table>";
+            o = "<table><tbody><tr><td>" + o.substring(0, o.length-8) + "</tbody></table>";
           } else {
-            o = "<table border='1'><tbody><tr><td>" + o + "</td></tr></tbody></table>";
+            o = "<table><tbody><tr><td>" + o + "</td></tr></tbody></table>";
           }
           node.value = "<span class='" + node.name + "' style='display:inline-block;'>" + o + "</span>";
+          updateCSSRules(node);
+
           this.intabular = false;
+          this.hlines    = {};
+          this.clines    = {};
+          this.rowcolor  = {};
+          this.cellcolor = {};
         },
 
         envTheorem: function(node) {
