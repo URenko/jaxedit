@@ -2312,6 +2312,7 @@ window.typejax = (function($){
           "description":              {mode: "block", args: ["[]", "||"]},
           "item":                     {mode: "main", args: ["[]", "<>", "||"]},
           "itemize":                  {mode: "block", args: ["[]", "||"]},
+          "mdframed":                 {mode: "block", args: ["[]", "||"]},
           "par":                      {mode: "block", args: ["||"], outs: ["par", "section"]},
           "preamble":                 {mode: "main", args: ["||"]},
           "tabular":                  {mode: "inline", args: ["{}", "||"]},
@@ -2700,6 +2701,28 @@ window.typejax = (function($){
           if (node.childs[0].mode == "inline") node.childs.shift();
         },
 
+        envMdframed: function(node) {
+          var style = [];
+          for(var i=0; i<node.childs[0].childs.length; i++) {
+            var props = node.childs[0].childs[i].value.split(",");
+
+            for(var j=0; j<props.length; j++) {
+              var css  = props[j].split("="),
+                  prop = css[0];
+                  val  = css[1];
+
+              switch(prop) {
+                case "backgroundcolor": prop = "background-color"; break;
+                case "linecolor":       prop = "border";
+                                        val  = "1px solid " + val; break;
+              }
+              style.push(prop + ":" + val);
+            }
+          }
+          node.childs[0].childs = [];
+          node.style            = style;
+        },
+
         envPreamble: function(node) {
           var list = packages.list, used = list.used,
               current = list.current, missing = list.missing, existing = list.existing;
@@ -2974,8 +2997,10 @@ window.typejax = (function($){
           from:  child.from,
           to:    child.to,
           name:  child.name,
+          style: child.style || [],
           html:  that.builder(child, false),
-          reset: that.builder.reset});
+          reset: that.builder.reset
+        });
       }
       if(footnotes) {
         out.push({
