@@ -2711,25 +2711,95 @@ window.typejax = (function($){
         },
 
         envMdframed: function(node) {
-          var style = [];
-          for(var i=0; i<node.childs[0].childs.length; i++) {
-            var props = node.childs[0].childs[i].value.split(",");
 
-            for(var j=0; j<props.length; j++) {
-              var css  = props[j].split("="),
-                  prop = css[0];
-                  val  = css[1];
+          function getValue(node) {
+            var res = "";
+            for(var i=0; i<node.childs.length; i++) {
+              var child = node.childs[i];
 
-              switch(prop) {
-                case "backgroundcolor": prop = "background-color"; break;
-                case "linecolor":       prop = "border";
-                                        val  = "1px solid " + val; break;
+              if(child.type == "env") {
+                res += child.value;
+              } else if(child.childs.length) {
+
+                if(child.type == "cmd") {
+                  res += "{" + getValue(child) + "}";
+                } else {
+                  res += getValue(child);
+                }
               }
+            }
+            return res;
+          }
+
+          var style = [],
+              props = getValue(node.childs[0]).split(","),
+              title = {
+                type: "env",
+                name: "title",
+                mode: "block",
+                from: node.childs[0].from,
+                to: node.childs[0].to,
+                value: "",
+                argtype: [],
+                argarray: [],
+                parent: node,
+                childs: [],
+                style: []
+              };
+
+          for(var i=0; i<props.length; i++) {
+            var css  = props[i].split("="),
+                prop = css[0].trim();
+                val  = css[1];
+            if(!val) continue;
+
+            switch(prop) {
+              case "backgroundcolor":   prop = "background-color"; break;
+              case "linecolor":         prop = "border"; val  = "1px solid " + val; break;
+              case "roundcorner":       prop = "border-radius"; break;
+              case "outerlinewidth":    prop = "border-width"; val  = (isNaN(parseInt(val)) ? val : 1 + parseInt(val)*2) + "px"; break;
+              case "leftmargin":        prop = "margin-left"; val += "px"; break;
+              case "rightmargin":       prop = "margin-right"; val += "px"; break;
+              case "innerleftmargin":   prop = "padding-left"; val += "px"; break;
+              case "innerrightmargin":  prop = "padding-right"; val += "px"; break;
+              case "innertopmargin":    prop = "padding-top"; val += "px"; break;
+              case "innerbottommargin": prop = "padding-bottom"; val += "px"; break;
+
+              case "frametitle":
+                prop = "";
+                title.value = val.replace(/^{|}$/g, '')
+                                 .replace(/\\space/g, "&nbsp;")
+                                 .replace(/\\colorbox{([^}]+)}{([^}]+)}/, function(m, color, text) {
+                                    return '<span style="background-color: '+ color +'">' + text + '</span>';
+                                  });
+                break;
+
+              case "frametitleaboveskip":
+                prop = "";
+                title.style.push("top:" + val.replace('\\ht\\strutbox', "1.5em"));
+                break;
+
+              case "frametitlealignment":
+                prop = "";
+                if(val == '\\center') {
+                  title.style.push("left: 50%");
+                  title.style.push("transform: translateX(-50%)");
+                }
+                break;
+            }
+            if(prop) {
               style.push(prop + ":" + val);
             }
           }
           node.childs[0].childs = [];
-          node.style            = style;
+          if(title.value) {
+
+            if(title.style.length) {
+              title.style.push("position: absolute");
+            }
+            node.childs[0] = title;
+          }
+          node.style = style;
         },
 
         envPreamble: function(node) {
@@ -3058,7 +3128,7 @@ window.typejax = (function($){
     if (flag) {
       if (tree.mode == "inline") {
         open = "<span class='" + tree.name + (tree.classname ? " " + tree.classname : "") + "'" +
-                  (tree.style ? "style='" + tree.style.join(";") + "'" : "") +
+                  (tree.style ? " style='" + tree.style.join(";") + "'" : "") +
                 ">",
         close = "</span>";
 
@@ -3067,7 +3137,10 @@ window.typejax = (function($){
           open += "<script type='math/tex'>", close = "</script>" + close; 
         }
       } else {
-        open = "<div class='envblock " + tree.name + (tree.classname ? " " + tree.classname : "") + "'>", close = "</div>";
+        open = "<div class='envblock " + tree.name + (tree.classname ? " " + tree.classname : "") + "'" + 
+                  (tree.style ? " style='" + tree.style.join(";") + "'" : "") +
+                ">",
+        close = "</div>";
         switch (tree.name) {
           case "bmath":
             open += "<div class='MathJax_Preview'>" + $.escapeText(tree.value) + "</div>";
