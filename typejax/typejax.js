@@ -2275,6 +2275,7 @@ window.typejax = (function($){
           "documentclass":            {mode: "inline", args: ["[]", "{}"]},
           "footnote":                 {mode: "inline", args: ["{}"]},
           "group":                    {mode: "inline", args: ["{}"]},
+          "includegraphics":          {mode: "inline", args: ["[]", "{}"]},
           "maketitle":                {mode: "block", args: []},
           "multicolumn":              {mode: "inline", args: ["{}", "{}", "{}"]},
           "newcounter":               {mode: "inline", args: ["{}", "[]"]},
@@ -2423,6 +2424,64 @@ window.typejax = (function($){
             var display = (docname == "beamer") ? "inline-block" : "none";
             jaxedit.childs.presbtn.style.display = display;
           }
+        },
+
+        cmdIncludegraphics: function(node) {
+          var style = {},
+              href  = "",
+              index = 0;
+
+          node.style = [];
+          for(var i=0; i<node.childs.length; i++) {
+
+            if(node.childs[i].name == "{}") {
+              href  = node.childs[i].childs[0].value;
+              index = i;
+
+            } else {
+              var props = node.childs[i].childs[0].value.split(",");
+
+              for(var j=0; j<props.length; j++) {
+                var css = props[j].split("="),
+                    prop = css[0],
+                    val  = css[1].trim();
+
+                switch(prop) {
+                  case "scale":
+                    prop = "transform";
+                    if(val > 1) {
+                      node.style.push("padding: " + (parseFloat(val) + 1) + "%");
+                    }
+                    val  = "scale(" + val + ")";
+                    break;
+
+                  case "angle":
+                    prop = "transform";
+                    val  = "rotate(" + val + "deg)";
+                    break;
+
+                  case "cfbox":
+                    prop = "border"; val = val.replace(/^(\w+)(?: (\d+)pt)*/, function(m, color, width){
+                      return (width ? parseInt(width) + 1 : 1) + "px solid " + color;
+                    });
+                    style.padding = "1px";
+                    break;
+                }
+                if(typeof style[prop] != "undefined") {
+                  style[prop] += " " + val;
+                } else {
+                  style[prop]  = val;
+                }
+              }
+            }
+          }
+
+          var css = Object.keys(style).map(function(k) {
+            return k + ":" + style[k];
+          }).join(";");
+
+          node.childs[index].value = '<img src="' + href + '" alt=""' + (css ? ' style="' + css + '"' : '') + ' />';
+          node.childs[index].childs = [];
         },
 
         // \multicolumn{2}{|l|}{text}
