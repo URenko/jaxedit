@@ -1852,7 +1852,7 @@ window.typejax = (function($){
           case "[":
             if (this.nodelevel > 0) {
               parent = this.nodeplace;
-              if (parent.argarray.length < parent.argtype.length) {
+              if (!this.intabular && parent.argarray.length < parent.argtype.length) {
                 for (i = parent.argarray.length; i < parent.argtype.length; i++) {
                   if (parent.argtype[i] == "{]" || parent.argtype[i] == "<>") {
                     parent.argarray.push(null);
@@ -2891,18 +2891,32 @@ window.typejax = (function($){
                 specs += child.value;
               }
             }
-            var rules = getCSSRules(specs);
+            var rules  = getCSSRules(specs),
+                posTop = false;
 
             // Get list of tr & td
             var td = 0,
                 tr = 0;
-            node.value = node.value.replace(/<tr>|<td> <td colspan='(\d+)' rules='([^']+)'>|<td>/g, function(match, colspan, specs){
+
+            node.value = node.value.replace(/(<tr>)<td> \[(-?\d+)pt\]|(<tr>)|(<td>) <td colspan='(\d+)' rules='([^']+)'>|(<td>) ?/g,
+              function(match,
+                isTr, padSpecs,
+                isTr2,
+                isTd, colspan, specs,
+                isTd2){
+                var pad = "";
 
               // Count TR
-              if(match == "<tr>") {
+              if(isTr || isTr2) {
                 td = 0;
                 tr++;
-                return '<tr data-row="' + tr + '">';
+
+                // [8pt]
+                if(padSpecs) {
+                  pad = '<tr style="height: ' + padSpecs + 'px"></tr><tr data-row="' + tr + '">';
+                } else {
+                  return '<tr data-row="' + tr + '">';
+                }
               }
               td++;
 
@@ -2933,7 +2947,9 @@ window.typejax = (function($){
                 style += "background-color: " + rowcolor[tr-1] + "; ";
               }
 
-              return '<td ' + (colspan && colspan > 1 ? 'colspan="' + colspan + '"' : '') + 'style="' + style + '">';
+              return pad + '<td ' + (colspan && colspan > 1 ? 'colspan="' + colspan + '"' : '')
+                            + 'style="' + style + '"'
+                      + '>';
             });
 
             if(hlines[tr]) {
