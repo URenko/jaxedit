@@ -114,7 +114,7 @@ window.jaxedit = (function($){
         }
       }
 
-      mathpath = options.localjs ? "library/mathjax/unpacked/" : "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/";
+      mathpath = "https://s2.pstatp.com/cdn/expire-1-M/mathjax/2.7.9/";
       if (location.pathname.slice(0, 6) == "/note/") {
         gatepath = "/gate/"; shareurl = "/note/";
       } else {
@@ -172,11 +172,11 @@ window.jaxedit = (function($){
     loadEditor: function() {
       var that = this;
       if (this.options.highlight) {
-        $.loadStyles("library/codemirror/lib/codemirror.css");
+        $.loadStyles("https://s2.pstatp.com/cdn/expire-1-M/codemirror/3.24.0/codemirror.min.css");
         $.loadScript("editor/textarea/colorful.js", function(){
-          $.loadScript("library/codemirror/lib/codemirror.js", function(){
-            $.loadScript("library/codemirror/mode/stex/stex.js", function(){
-              $.loadScript("library/codemirror/addon/edit/matchbrackets.js", function(){
+          $.loadScript("https://s2.pstatp.com/cdn/expire-1-M/codemirror/3.24.0/codemirror.min.js", function(){
+            $.loadScript("https://s2.pstatp.com/cdn/expire-1-M/codemirror/3.24.0/mode/stex/stex.js", function(){
+              $.loadScript("https://s2.pstatp.com/cdn/expire-1-M/codemirror/3.24.0/addon/edit/matchbrackets.js", function(){
                 that.addEditor();
                 that.hasEditor = true;
                 that.initialize();
