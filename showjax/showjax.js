@@ -68,7 +68,7 @@ showjax.initShow = function() {
           "maxWidth", "none", "maxHeight", "none",
           "height", "100%", "width", "100%",
           "margin", "0px", "padding", "0px",
-          "border", "none"
+          "border", "none", "font-size", "x-small"
         ]);
       } else {
         styles.push(chd, ["display", "none"]);
