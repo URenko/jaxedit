@@ -193,6 +193,12 @@ showjax.navigateShow = function(event) {
   showarea.childNodes[showjax.frameall[k]].style.display = "none";
   showarea.childNodes[showjax.frameall[showjax.frameidx]].style.display = "block";
   showarea.childNodes[showjax.frameall[showjax.frameidx]].style.border = "none";
+  if (typeof(page_div) == 'undefined'){
+    page_div = document.createElement('div');
+    page_div.style.cssText = "position: absolute;filter: invert(100%);right: 0;bottom: 0;"
+    showarea.appendChild(page_div);
+  }
+  page_div.innerHTML = showjax.frameidx;
   //if (!showjax.framedone[showjax.frameidx]) {
   if (showjax.frameidx !== k) {
     MathJax.Hub.Rerender(showarea);
